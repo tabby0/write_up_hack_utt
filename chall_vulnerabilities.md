@@ -206,6 +206,7 @@ Donc on a :
 Et RIP sera utiliser en fin de fonction pour aller sur la prochaine instruction
 
 💣 Donc, si on arrive à écraser RIP on peut modifier le cours d'éxecution du programme et sauter directement dans la fonction win !
+
 💣 Mais pour ca il faut que le canary soit valide : 
 
 ![](attachment/b9c458245f609728f196fcdf951aaa80.png)
@@ -458,13 +459,19 @@ io.interactive()
 ##### Exit
 
 🕵️‍♀️ Ici on a un deposit remis à 0 
+
 🕵️‍♀️ On dealloc l'account mais on ne le détruit pas
+
 🕵️‍♀️ On remet opened en false
 
 💣 Ici ça semble intéressant car le deposit est à zero, du coup la limite de 13 dépôt est également remise à 0
+
 💣 La balance reste à l'état ou elle était !!!!!
+
 💣 Mais le compte n'est plus pointé en mémoire
+
 💣 Si avec un peu de chance, la balance  est située dans le même emplacement mémoire pour chaque utilisation du programme, on peut peut-être manipuler sa valeur !!
+
 
 ![](attachment/6bb2eea1d502cdc07efc4f8d5a424692.png)
 

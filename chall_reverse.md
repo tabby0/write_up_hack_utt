@@ -9,6 +9,7 @@
 ![](attachment/b79fa19647c5aa33acad78c3dc31b2c5.png)
 
 🕵️‍♀️ Ici on voit que le binaire attend un "Input" et affiche "Mauvais mot de passe".
+
 💡 Il s'agit de trouver le bon mot de passe
 
 #### Résolution du chall
@@ -62,6 +63,7 @@ Concernant a1, on savait qu'il sagissait du buffer contenant username qui est de
 #### Exploitation
 
 🕵️‍♀️ Il nous suffit de faire l'opération inverse pour trouver une license valide 
+
 🕵️‍♀️ *Pré requis* : la génération de la license ne repose que sur le nom d'utilisateur. Ca tombe bien car nous savons qu'il s'agit de l'utilisateur "admin"
 
 ```python
@@ -103,7 +105,7 @@ print(io.recvall())
 >ps: pas besoin d'analyser la fonction `power_mod`. Il s'agit, comme son nom l'indique, d'une exponentitation modulaire: `power_mod(a, b, c)` <-> `pow(a, b) % c`
 
 💽 binaire : 2_chall
-🇫🇷 HackUTT{as_tu_vu_la_crypto???}
+
 #### Execution du binaire
 
 Nous n'avons aucun output lors de l'execution du binaire
@@ -111,7 +113,9 @@ Nous n'avons aucun output lors de l'execution du binaire
 #### Résolution du chall
 
 🕵️‍♀️ Dans le main, on a une boucle qui incrémente un i de **1** à **nbr d'argument total** . 
+
 🕵️‍♀️ Si un argument est égal à '-' alors la fonction break
+
 🕵️‍♀️ Ensuite il y a un second break si on est dans cette condition : 
 
 ` if ( arg_to_int != -power_number )`
@@ -129,6 +133,7 @@ si i = 1 alors pow(3,i31) = 3
 ```
 
 donc il nous faut entrer -3 dans le premier argument ! 
+
 🤡 Hors, on ne peut pas ! Et oui, le char '-' n'est pas autorisé... Pour contourner ca, on va utiliser la version signée de l'entier 64 bits '-3'.
 
 On peut l'obtenir ainsi en python : 
@@ -147,6 +152,7 @@ It workssss :
 ![](attachment/d491cc4d1358c8f43e3c1d493c320b29.png)
 
 🕙 Bon, maintenant il nous faut faire cela pour chaque argument !!!
+
 Sachant que si on regarde bien dans la data envoyé par putc, la chaîne à décoder fait 30 characters : 
 
 ![](attachment/026ea4be19e547f048092fd990851da9.png)
@@ -197,6 +203,7 @@ b'HackUTT{as_tu_vu_la_crypto???}\n'
 ![](attachment/c5d30550b4693f922aaeb1731c7f52c2.png)
 
 🕵️‍♀️ Les 30 premiers bytes doivent être égals à : 
+
 "----BEGIN HACKUTT LICENSE----\n"
 
 ![](attachment/1048c4acffff2c8b5c257fd65d158010.png)
@@ -204,6 +211,7 @@ b'HackUTT{as_tu_vu_la_crypto???}\n'
 🕵️‍♀️ Les 30 derniers bytes doivent être égals à :
 
 "-----END HACKUTT LICENSE-----\n"
+
 ![](attachment/0989f34f9740758a71a80a2ed3c0661f.png)
 
 🕵️‍♀️ Ensuite il decode le contenu aprés les 30 premiers octets et avant les 60 derniers octets :
@@ -211,11 +219,13 @@ b'HackUTT{as_tu_vu_la_crypto???}\n'
 ![](attachment/3dd927ff806fe40b24006c7c078c6025.png)
 
 🕵️‍♀️ Les 6 premier charactére de la valeur décodé doivent être égal à "Name: '' 
+
 🕵️‍♀️ Ensuite le code va jusqu'au retour à la ligne
 
 ![](attachment/7a9e8989dbd058027a012ff2b049a583.png)
 
 🕵️‍♀️ Idem pour "Serial: " puis retour à la ligne
+
 🕵️‍♀️Idem pour le type. Enfin on a une structure de fichier comme ceci avant le base64 : 
 
 ```txt
@@ -226,6 +236,7 @@ Type:
 
 -----END HACKUTT LICENSE-----
 ```
+
 💡 Tu peux suivre les codes erreur de retour pour t'aider. Exemple : 
 
 ![](attachment/46a8541c19a3b5a6960a58c2f6ef4279.png)
@@ -266,6 +277,7 @@ print(io.recvall())
 
 
 💡Bon, c'est bien beau, mais ça ne nous donnes pas les valeurs possibles !! 
+
 🕵️‍♀️ En y regardant de plus prêt, on voit qu'il place les éléments contenu dans "Name Serial" et "Type" dans une zone mémoire. Je vais mettre en place une struct pour faciliter la visualisation. On sait que la struct devra contenir 3 valeurs de la taille d'un int64:
 
 ![](attachment/1d5adfe08f2a6a008ec33e1ab9b86e2d.png)
@@ -296,10 +308,12 @@ D'ailleurs la valeur "Type" sera converti en int (atoi) !
 Tu peux aussi créer une structure avec : 
 
 1️⃣ shift + F9 
+
 2️⃣ insert 
 
 ![](attachment/9b9c61dc0143cdf0821287f108f33d68.png)
 ##### fonction check 
+
 🕵️‍♀️ Bon, on peut se rendre dans la fonction check pour vérifier ce que le programme attend : 
 
 ![](attachment/57abaebaa65f3a566db096e6c1a1114e.png)
@@ -313,6 +327,7 @@ Avec le retypage en struct c'est beaucoup plus clair !!
 ![](attachment/6bb408cf637708a66cb7b1eebcd11e32.png)
 
 🕵️‍♀️ Exploitation : 
+
 ```python
 from pwn import *
 import base64
