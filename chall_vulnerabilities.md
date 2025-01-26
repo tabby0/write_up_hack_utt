@@ -81,6 +81,7 @@ print(canary)
 🕵️‍♀️ Après plusieurs exécutions de notre code, on observe que le nombre généré est toujours le même : 
 
 ![](attachment/e076b1c68982ebee2079b36b45cbe195.png)
+
 ==canary = 1804289383==
 
 🕵️‍♀️ En revanche, pour ce qui est du rand() de la fonction "tirage", il n'est pas possible de le deviner, car le srand() est exécuté avant : 
@@ -99,6 +100,7 @@ print(canary)
 💣 Le problème est que la taille de l'entrée utilisateur est définie par 10 fois le nombre de tirage !
 
 ![](attachment/b60a5bb3add8ce9af43a8463f32394c2.png)
+
 ![](attachment/3f5f449791358fefcc56930bbe0f7ea5.png)
 
 On se rend vite compte qu'une fois arrivé au tirage numéro 8 (8x10 = 80), on va dépasser le buffer de 72 !!!
@@ -128,6 +130,7 @@ print(io.recvline())
 ```
 
 On a bien une erreur avec un stack smashing detected
+
 ![](attachment/52d0480822ad5431cc855b2109aecb69.png)
 
 🕵️‍♀️ Mais quelle est cette valeur qu'on a écrasée en dépassant les 72 bytes adressés pour le buffer de l'user input ??
@@ -135,6 +138,7 @@ On a bien une erreur avec un stack smashing detected
 Pour ça il faut comprendre la stack frame de la fonction "tirage" :
 
 ![](attachment/aa44cae69254510d107e0a995a8e8985.png)
+
 Dans le prologue de la fonction, on voit qu'un espace de 104 (0x68) bytes est alloué pour cette stack frame.
 
 - en 1 : edi va dans rbp-64h
@@ -183,8 +187,11 @@ L'écart en le début de use_ input et canary est de 0x60 - 0x18 = 0x48 = 72 !!
 💡 Mais qu'est ce qu'il y a au dessus de canary 🦆 ???
 
 ![](attachment/80f13ac0cdacd2942801fa3bcaf0b9b4.png)
+
 Si on reprend le cours, on se souvient que les deux premier éléments de la stack frame en 64 bits sont 
+
 ![](attachment/b6d4a52a6b6fb2658ae6b6d344230c60.png)
+
 Donc on a :
 
 | position | valeur           |
@@ -233,6 +240,7 @@ io.sendlineafter(b'Quel est votre choix :',nbr_if_char)
 print(io.recvline())
 print(io.recv().decode())
 ```
+
 ![](attachment/4a2d8de1426dd47d5571b2f237c099c8.png)
 
 On va donc chercher cette valeur et l'écraser par le canary pour voir si on arrive à passer ce check : 
@@ -286,6 +294,7 @@ io.sendlineafter(b'Quel est votre choix :',(b'A'*n)[:n]+p64(canary)+ between_can
 print(io.recvline())
 print(io.recv().decode())
 ```
+
 ![](attachment/4dc8d2adc31ee899421773a49444ebec.png)
 
 🎇 nickel on a gagné ! 🎇
@@ -329,8 +338,11 @@ _Note: les fichiers sont les même de précédemment_
 
 ![](attachment/29598e798fcd717ecd06e36bef505da1.png)
 cb :
+
 ![](attachment/594af151d1ca5f56ee2df45e31d9b482.png)
+
 💡 tips pour afficher correctement les pointeurs de fonction dans IDA
+
 ![](attachment/c13ea0c3cc0c64fd914502075a9d75b7.png)
 
 
@@ -339,21 +351,27 @@ cb :
 💣 Mais nous, on peut mettre un nombre négatif !!! du coup, on peut appeler des éléments qui se situent plus haut : 
 
 ![](attachment/756f783370fdb7a7cb99cbe94b021c9d.png)
+
 💣 à -0x20 (donc en position -4 (0x20/8 bytes), on peut appeler la variable "nom" que l'on maitrise totalement !!!!!!!
 
 🕵️‍♂️ Testons notre hypothése avec gdb, on place des 'AAAAAAAAAA' dans le nom : 
 
 ![](attachment/937ed7fae67554e8acb17e6416618ffd.png)
+
 🕵️‍♂️ On place -4 dans le choix :
+
 ![](attachment/8905ced07cd1db014fb097e81ddabfd9.png)
 
 🕵️‍♂️ On va regarder le call effectuer et vérifier qu'on a bien réussi à le manipuler :
 
 ![](attachment/5a08c819220b584df8c6fbf78d0c9969.png)
+
 ![](attachment/2934fd8a6897bf8e72d2979f12b72f30.png)
 
 ##### Exploitation
+
 ![](attachment/db8e77672cb41a86661a42b5394a3e3f.png)
+
 💣 En little endian ça donne : 0xff1540 -> ÿ@ 
 
 💣 Bon, ça contient des caractères non imprimables, on va passer par l'option pwntools !!!
@@ -375,6 +393,7 @@ io.sendlineafter(b'-> ', b'4')
 
 io.interactive()
 ```
+
 ![](attachment/f1b87254a1ff4420df4e3a1bfd6ed30a.png)
 ### BankRupst
 
@@ -437,6 +456,7 @@ io.interactive()
 ![](attachment/df337614ee906e66f178cfc18da3dc2a.png)
 
 ##### Exit
+
 🕵️‍♀️ Ici on a un deposit remis à 0 
 🕵️‍♀️ On dealloc l'account mais on ne le détruit pas
 🕵️‍♀️ On remet opened en false

@@ -7,12 +7,14 @@
 #### Execution du binaire 
 
 ![](attachment/b79fa19647c5aa33acad78c3dc31b2c5.png)
+
 🕵️‍♀️ Ici on voit que le binaire attend un "Input" et affiche "Mauvais mot de passe".
 💡 Il s'agit de trouver le bon mot de passe
 
 #### Résolution du chall
 
 ![](attachment/841409f5e038bfce0702286325fde29f.png)
+
 ![](attachment/2c1aaafb61803b0e6da772e8bf61afdc.png)
 
 ### 1 keygen
@@ -26,6 +28,7 @@
 #### Execution du binaire 
 
 ![](attachment/181f68a246e63a177070cfebbb98f109.png)
+
 🕵️‍♀️ Le binaire attend deux arguments *username* et *license*
 
 #### Résolution du chall
@@ -35,10 +38,13 @@
 🕵️‍♀️ le buffer *username* va subir un premier traitement par une fonction nommée *xor_buf*. Ensuite, si la fonction *sum_buf* retourne une valeur égale à *license_to_ulong_base16* alors la license est valide.
 
 ##### Fonction xor_buf
+
 ![](attachment/06f60bf2f6d8e1e8543e102ac3564291.png)
+
 🕵️‍♀️ Cette fonction xor chaque byte de l'username par la clé 3
 
 ##### Fonction sum_buff
+
 ![](attachment/36839f4b63e1f80410c32c4479bb2699.png)
 
 🕵️‍♀️ Dans cette fonction, on additionne chaque byte de username par chaque byte de username !
@@ -46,8 +52,11 @@
 🚧 Pour plus de lisibilité dans le code, il est "important" de renommer et retyper les variables :
 
 Avant le retypage, on avait cette fonction peu lisible : 
+
 ![](attachment/5b714dc181bf77dafbb3a8ec22888364.png)
+
 Concernant a1, on savait qu'il sagissait du buffer contenant username qui est de type 'char'. Le buffer est donc de type char * :
+
 ![](attachment/6c001ddfa2f2090eaa63b15d23583262.png)
 
 #### Exploitation
@@ -134,6 +143,7 @@ print(unsigned_int)
 🕵️‍♀️ testons cela : 
 
 It workssss : 
+
 ![](attachment/d491cc4d1358c8f43e3c1d493c320b29.png)
 
 🕙 Bon, maintenant il nous faut faire cela pour chaque argument !!!
@@ -142,6 +152,7 @@ Sachant que si on regarde bien dans la data envoyé par putc, la chaîne à déc
 ![](attachment/026ea4be19e547f048092fd990851da9.png)
 
 Voici le code : 
+
 ```python
 from pwn import *
 
@@ -182,20 +193,26 @@ b'HackUTT{as_tu_vu_la_crypto???}\n'
 🕵️‍♀️ ici le binaire prend un fichier texte et le parse. Si la valeur de retour de la fonction "parse" est égal à 1 alors on est bon !
 
 🕵️‍♀️ La fonction de parsing vérifie le contenu du fichier : 
+
 ![](attachment/c5d30550b4693f922aaeb1731c7f52c2.png)
 
 🕵️‍♀️ Les 30 premiers bytes doivent être égals à : 
 "----BEGIN HACKUTT LICENSE----\n"
+
 ![](attachment/1048c4acffff2c8b5c257fd65d158010.png)
+
 🕵️‍♀️ Les 30 derniers bytes doivent être égals à :
+
 "-----END HACKUTT LICENSE-----\n"
 ![](attachment/0989f34f9740758a71a80a2ed3c0661f.png)
 
 🕵️‍♀️ Ensuite il decode le contenu aprés les 30 premiers octets et avant les 60 derniers octets :
+
 ![](attachment/3dd927ff806fe40b24006c7c078c6025.png)
 
 🕵️‍♀️ Les 6 premier charactére de la valeur décodé doivent être égal à "Name: '' 
 🕵️‍♀️ Ensuite le code va jusqu'au retour à la ligne
+
 ![](attachment/7a9e8989dbd058027a012ff2b049a583.png)
 
 🕵️‍♀️ Idem pour "Serial: " puis retour à la ligne
@@ -210,8 +227,11 @@ Type:
 -----END HACKUTT LICENSE-----
 ```
 💡 Tu peux suivre les codes erreur de retour pour t'aider. Exemple : 
+
 ![](attachment/46a8541c19a3b5a6960a58c2f6ef4279.png)
+
 🕵️‍♀️ Voici un snippet pour créer la base du fichier
+
 ```python
 from pwn import *
 import base64
@@ -247,6 +267,7 @@ print(io.recvall())
 
 💡Bon, c'est bien beau, mais ça ne nous donnes pas les valeurs possibles !! 
 🕵️‍♀️ En y regardant de plus prêt, on voit qu'il place les éléments contenu dans "Name Serial" et "Type" dans une zone mémoire. Je vais mettre en place une struct pour faciliter la visualisation. On sait que la struct devra contenir 3 valeurs de la taille d'un int64:
+
 ![](attachment/1d5adfe08f2a6a008ec33e1ab9b86e2d.png)
 
 D'ailleurs la valeur "Type" sera converti en int (atoi) !
@@ -254,12 +275,17 @@ D'ailleurs la valeur "Type" sera converti en int (atoi) !
 ##### Création de la structure
 
 1️⃣ Création de la nouvelle structure : 
+
 ![](attachment/e1999a31307fc55c61d267d22265b460.png)
 
 2️⃣ Ajouts des trois éléments :
+
 ![](attachment/de90c057030c15bbacb08ae792061540.png)
 
+
+
 ![](attachment/ae3c4c3d65d6014a570f2b42952d7e8e.png)
+
 🚧 Chaque élément est un 'dq', pour rappel : 
 
 - db -> define byte (1 byte : 8 bits)
@@ -271,6 +297,7 @@ Tu peux aussi créer une structure avec :
 
 1️⃣ shift + F9 
 2️⃣ insert 
+
 ![](attachment/9b9c61dc0143cdf0821287f108f33d68.png)
 ##### fonction check 
 🕵️‍♀️ Bon, on peut se rendre dans la fonction check pour vérifier ce que le programme attend : 
@@ -325,10 +352,13 @@ create_license_file(filename,body_base64)
 ```
 
 ![](attachment/a6d79c116d44df9f065810df8ce27742.png)
+
 🕵️‍♀️ Et enfin, pour valider le chall, il faut que le type soit égal à 51966 : 
+
 ![](attachment/d6ae4dedcf552d5d84d465ccb9525d3c.png)
 
 🕵️‍♀️ Modifions notre code : 
+
 ```python
 from pwn import *
 import base64
@@ -373,6 +403,7 @@ args.append(filename)
 io = process(["./3_chal"] + args)
 print(io.recvall())
 ```
+
 ![](attachment/2797115a651d80f0c4f440cdff49ffcd.png)
 
 ###  Broken
