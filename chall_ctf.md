@@ -32,27 +32,28 @@ En plus nous faisons des captures réseau régulièrement !
 
 ##### Fonction main 
 
-🕵️‍♂️ Nous avons deux créations de buffer de taille 32 bytes et 24 bytes. Ces buffer sont initialisé avec de la donnée random. Notons qu'il s'agit d'une fonction de la lib libsodium
+🕵️‍♂️ Nous avons deux créations de buffer de taille 32 bytes et 24 bytes. Ces buffers sont initialisés avec de la donnée random. Notons qu'il s'agit d'une fonction de la lib libsodium
 
 ![](attachment/f22daea1ac756185e32085ff9ea1e9ae.png)
 
-🕵️‍♂️ Une fois le renommage/retypage effectué, le process le fonctionnement global du malware est facilement compréhensible :
+🕵️‍♂️ Une fois le renommage/retypage effectué, le fonctionnement global du malware est facilement compréhensible :
 
 ![](attachment/03d4900e8357dc4bbefc9733cb7706c3.png)
 
-1) Nous avons la création de deux buffer remplis de random data. L'un d'une taille de 32 bytes et l'autre d'une taille de 24 bytes. Ensuite, le contenu de "flag.jpeg" est placé dans le buffer "buff_flag".
-2) Nous avons une fonction de chiffrement qui prend en paramétres le flag, le buff_24 et le buff_32,
+1) Nous avons la création de deux buffers remplis de random data. L'un d'une taille de 32 bytes et l'autre d'une taille de 24 bytes. Ensuite, le contenu de "flag.jpeg" est placé dans le buffer "buff_flag".
+2) Nous avons une fonction de chiffrement qui prend en paramétre le flag, le buff_24 et le buff_32,
 3) Nous avons une connexion initialisée vers 192.168.1.40 sur le port 1337,
-4) Et enfin nous avons l'envoie des deux buffer de 24 et 32 bytes puis du buff_size_flag qui semble contenir le fichier flag.jpeg. Analysons la fonction crypto_stream_xor pour en comprendre le contenu.
+4) Et enfin, nous avons l'envoie des deux buffer de 24 et 32 bytes puis du buff_size_flag qui semble contenir le fichier flag.jpeg. Analysons la fonction crypto_stream_xor pour en comprendre le contenu.
 
 ##### Fonction crypto_stream_xor
 
 
 🕵️‍♂️ Contenu de la fonction crypto_stream : 
+
 ![](attachment/aa0a1166c7674884191f6916bc6c1f76.png)
 
 
-🕵️‍♂️ Nous avons une deuxiéme référence à libsodium :
+🕵️‍♂️ Nous avons une deuxième référence à libsodium :
 
 ![](attachment/65c52a94c53910054ff30668f295f275.png)
 ![](attachment/13f312809306386c35fea82a16287857.png)
@@ -74,11 +75,12 @@ ciphertext = pure_salsa20.xsalsa20_xor(key, nonce, plaintext)
 assert plaintext == pure_salsa20.xsalsa20_xor(key, nonce, ciphertext)
 ```
 
-🕵️‍♂️ Il est interressant de voir nos deux valeurs de 32 et 24 bytes ! Dans le code suivant 24 -> nonce, 32 -> Key
+🕵️‍♂️ Il est intéressant de voir nos deux valeurs de 32 et 24 bytes ! Dans le code suivant 24 -> nonce, 32 -> Key
 
 ##### Exploitation
 
-🕵️‍♂️ Dans le pcap capturé nous pouvons récupérer la donnée transmises. Pour cela il faut identifier la transmission de donnée par le malware.
+🕵️‍♂️ Dans le pcap capturé, nous pouvons récupérer la donnée transmise. Pour cela il faut identifier la transmission de donnée par le malware.
+
 🕵️‍♂️ Un filtre sur le port 1337 et sur l'ip de destination 192.168.1.40 :
 
 ```bash
@@ -87,7 +89,7 @@ ip.dst == 192.168.1.40 && tcp.port == 1337
 
 ![](attachment/48f50885796c10f269407a8b0799018c.png)
 
-🕵️‍♂️ Avec un click droit sur la trame puis Follow -> TCP Stream nous pouvons afficher le flux TCP des données envoyés :
+🕵️‍♂️ Avec un click droit sur la trame puis Follow -> TCP Stream nous pouvons afficher le flux TCP des données envoyées :
 
 ![](attachment/537e2fc0bf4c88ee4753866d15aae4d3.png)
 
@@ -96,11 +98,13 @@ ip.dst == 192.168.1.40 && tcp.port == 1337
 ![](attachment/8a8aca559640ace552853e6b6625aa28.png)
 
 🕵️‍♂️ Donc dans l'ordre d'envoie des données au serveur on a : 
+
 ![](attachment/dc15465909d331f387152b462c6bd3ab.png)
+
 label : vue hexadécimal de la donnée exportée sur wireshark
 
-- En bleu : Les 24 bytes representant le nonce
-- En jaune : les 32 bytes representant la clé
+- En bleu : Les 24 bytes représentant le nonce
+- En jaune : les 32 bytes représentant la clé
 - En rouge : Le reste de la donnée chiffrée contenant le flag.jpeg
 
 🕵️‍♂️ Il nous reste plus qu'à écrire le script d'exploitation : 
